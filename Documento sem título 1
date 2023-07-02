@@ -1,0 +1,173 @@
+funções antigas :
+
+
+
+
+
+void criaGrupo(struct Group **groupcab, struct User **lider) {
+    struct Group *novoGrupo = malloc(sizeof(struct Group));
+    struct Group *anterior = NULL;
+    struct Group *atual = *groupcab;
+
+    novoGrupo->lider = NULL;
+    printf("Digite o nome do grupo: ");
+    getchar();
+    fgets(novoGrupo->nome, sizeof(novoGrupo->nome), stdin);
+    novoGrupo->nome[strcspn(novoGrupo->nome, "\n")] = '\0';
+
+    if (verificaGrupo(groupcab, novoGrupo->nome) != NULL) {
+        system("clear");
+        printf("O grupo já existe!\n");
+        free(novoGrupo);
+        return;
+    }
+
+    novoGrupo->lider = *lider;
+    novoGrupo->participantes = *lider;
+    novoGrupo->prox = NULL;
+    if((*lider) ->primeiroGrupo == NULL){
+        (*lider) ->primeiroGrupo = novoGrupo;
+        (*lider) ->primeiroGrupo ->prox = NULL;
+    }else{
+        struct Group *aux1 = (*lider) ->primeiroGrupo;
+        while(aux1 != NULL ){
+            printf("Entrei aq 4 \n");
+            aux1 = aux1 ->prox;
+        }
+        aux1 = novoGrupo;
+        aux1 -> prox = NULL;
+        
+    }
+    struct Group **aux = &(*groupcab);
+
+    // Encontrar a posição correta para inserir o novo grupo em ordem alfabética
+    while (*aux != NULL && strcmp(novoGrupo->nome, (*aux)->nome) > 0) {
+        anterior = *aux;
+        aux = &(*aux)->prox;
+    }
+
+    // Inserir o novo grupo na posição correta
+    novoGrupo->prox = *aux;
+    if (anterior != NULL) {
+        anterior->prox = novoGrupo;
+    } else {
+        *groupcab = novoGrupo;
+    }
+
+    printf("Digite a descrição do grupo: ");
+    fgets(novoGrupo->descricao, sizeof(novoGrupo->descricao), stdin);
+    novoGrupo->descricao[strcspn(novoGrupo->descricao, "\n")] = '\0';
+    system("clear");
+    printf("Grupo criado com sucesso.\n");
+}
+
+/*void adicionaGrupo(struct User **usuario, struct Group **groupcab) {
+    char nomeGrupo[30];
+    printf("Digite o nome do grupo: ");
+    getchar();
+    fgets(nomeGrupo, sizeof(nomeGrupo), stdin);
+    nomeGrupo[strcspn(nomeGrupo, "\n")] = '\0';
+
+    struct Group *novoGrupo;
+    novoGrupo = verificaGrupo(groupcab, nomeGrupo);
+    if (novoGrupo == NULL) {
+        system("clear");
+        printf("Esse grupo não existe!\n");
+        return;
+    }
+
+    if (verificaParticipante(usuario, &novoGrupo)) {
+        system("clear");
+        printf("Você já é um participante.\n");
+        return;
+    }
+
+    struct User *novoParticipante = malloc(sizeof(struct User));
+    if (novoParticipante == NULL) {
+        printf("Erro de alocação de memória.\n");
+        return;
+    }
+
+    novoParticipante->prox = NULL;
+    novoParticipante->primeiroGrupo = NULL;
+
+    // Atribuir o nome de usuário do usuário atual ao novo participante
+    strncpy(novoParticipante->username, (*usuario)->username, sizeof(novoParticipante->username) - 1);
+    novoParticipante->username[sizeof(novoParticipante->username) - 1] = '\0';
+
+    // Adicionar o usuário à lista de participantes do grupo
+    if (novoGrupo->participantes == NULL) {
+        novoGrupo->participantes = novoParticipante;
+    } else {
+        struct User *participanteAux = novoGrupo->participantes;
+        while (participanteAux->prox != NULL) {
+            participanteAux = participanteAux->prox;
+        }
+        participanteAux->prox = novoParticipante;
+    }
+
+    // Adicionar o grupo à lista de grupos do usuário
+    if ((*usuario)->primeiroGrupo == NULL) {
+        (*usuario)->primeiroGrupo = novoGrupo;
+    } else {
+        struct Group *grupoAux = (*usuario)->primeiroGrupo;
+        while (grupoAux->prox != NULL) {
+            grupoAux = grupoAux->prox;
+        }
+        grupoAux->prox = novoGrupo;
+    }
+
+    system("clear");
+    printf("Parabéns, você entrou no grupo!\n");
+}
+*/
+void adicionaGrupo(struct User **usuario, struct Group **groupcab) {
+    char nomeGrupo[30];
+    printf("Digite o nome do grupo que deseja entrar: ");
+    getchar();
+    fgets(nomeGrupo, sizeof(nomeGrupo), stdin);
+    nomeGrupo[strcspn(nomeGrupo, "\n")] = '\0';
+
+    struct Group *grupo = verificaGrupo(groupcab, nomeGrupo);
+    
+    if (grupo != NULL) {
+        // Verifica se o usuário já é participante do grupo
+        struct User *participante = grupo->participantes;
+        while (participante != NULL) {
+            if (strcmp(participante->username, (*usuario)->username) == 0) {
+                printf("Você já é participante deste grupo!\n");
+                return;
+            }
+            participante = participante->prox;
+        }
+
+        // Adiciona o usuário como participante do grupo
+        struct User *novoParticipante = (struct User *)malloc(sizeof(struct User));
+        novoParticipante = *usuario;
+        novoParticipante->prox = grupo->participantes;
+        grupo->participantes = novoParticipante;
+
+        // Atualiza a lista de grupos do usuário
+        /*novoParticipante->primeiroGrupo = (*usuario)->primeiroGrupo;
+        (*usuario)->primeiroGrupo = grupo;
+        (*usuario) ->primeiroGrupo ->prox = NULL;
+        */
+       struct Group **aux = &((*usuario)->primeiroGrupo);
+        if (*aux == NULL) {
+            *aux = grupo;
+        } else {
+            while ((*aux)->prox != NULL) {
+                aux = &((*aux)->prox);
+            }
+            (*aux)->prox = grupo;
+        }
+        grupo->prox = NULL;
+        
+        
+        printf("Você foi adicionado ao grupo com sucesso!\n");
+    } else {
+        printf("Grupo não encontrado!\n");
+    }
+}
+
+
